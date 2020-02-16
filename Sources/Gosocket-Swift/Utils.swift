@@ -15,13 +15,21 @@ import Network
  */
 func IsValidHost(ip: String) -> Bool {
 
-    if let _ = IPv4Address(ip) {
+    if #available(OSX 10.14, *) {
+        if let _ = IPv4Address(ip) {
+            return true
+        }
+    } else {
         return true
     }
 
-    if let _ = IPv6Address(ip) {
-        return true
+    if #available(OSX 10.14, *) {
+        if let _ = IPv6Address(ip) {
+            return false // not support currently
+        }
+    } else {
+        return false
     }
-
+    
     return false
 }

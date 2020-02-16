@@ -26,6 +26,6 @@ public class StringMessageListener: MessageListener {
     }
     
     public func OnMessage(message: String) {
-        print(message)
+        debugLog(message)
     }
 }

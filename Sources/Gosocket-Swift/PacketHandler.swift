@@ -13,17 +13,19 @@ import Foundation
 @_silgen_name("ytcpsocket_send") private func c_ytcpsocket_send(_ fd: Int32, buff: UnsafePointer<Byte>, len: Int32) -> Int32
 
 
-class PacketHandler<L: MessageListener, C: Codec>
-where L.MessageType == C.MessageType{
+class PacketHandler<C: Codec, L: MessageListener>
+where C.MessageType == L.MessageType{
     
-    private let cli: TCPClient<L, C>
+    private let cli: TCPClient<C, L>
     
-    init(cli: TCPClient<L, C>) {
+    init(cli: TCPClient<C, L>) {
         self.cli = cli
     }
     
     func handlePacketReceived(packet: Packet) throws {
         let m = try self.cli.codec.decode(data: packet.body)
+        
+        debugLog("Cli \(self.cli.name) message received. data size: \(packet.len).")
         
         self.cli.messageListener.OnMessage(message: m)
     }
@@ -36,7 +38,7 @@ where L.MessageType == C.MessageType{
         let uint32Size = MemoryLayout<UInt32>.size
         
         let verBuf: [UInt8] = [packet.ver]
-    
+        
         var lenBigEndian = packet.len.bigEndian
         let lenPtr = withUnsafePointer(to: &lenBigEndian) {
             $0.withMemoryRebound(to: UInt8.self, capacity: uint32Size) {
@@ -60,5 +62,7 @@ where L.MessageType == C.MessageType{
         if Int(sendSize) != data.count {
             throw ConnectError.sendSizeError
         }
+        
+        debugLog("Cli \(self.cli.name) message sent. data size: \(packet.len).")
     }
 }

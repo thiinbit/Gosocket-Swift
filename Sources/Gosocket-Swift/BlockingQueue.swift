@@ -34,7 +34,6 @@ public final class BlockingQueue<T> {
     private var head: QueueNode<T>? = nil
     private var tail: QueueNode<T>? = nil
     
-    
     public init() {
     }
 }
@@ -42,8 +41,6 @@ public final class BlockingQueue<T> {
 extension BlockingQueue {
     
     public func append(newElement: T) {
-        self.semaphore.signal()
-        
         let oldTail = tail
         self.tail = QueueNode(value: newElement)
         if head == nil {
@@ -51,22 +48,7 @@ extension BlockingQueue {
         } else {
             oldTail?.next = self.tail
         }
-    }
-    
-    
-    
-    public func dequeue() -> T? {
-        self.semaphore.wait()
-        
-        if let head = self.head {
-            self.head = head.next
-            if head.next == nil {
-                tail = nil
-            }
-            return head.value
-        } else {
-            return nil
-        }
+//        self.semaphore.signal()
     }
     
     public func dequeue(timeout: DispatchTime) -> T? {
@@ -86,6 +68,18 @@ extension BlockingQueue {
             return nil
         default:
             return dequeue()
+        }
+    }
+    
+    private func dequeue() -> T? {
+        if let head = self.head {
+            self.head = head.next
+            if head.next == nil {
+                tail = nil
+            }
+            return head.value
+        } else {
+            return nil
         }
     }
 }

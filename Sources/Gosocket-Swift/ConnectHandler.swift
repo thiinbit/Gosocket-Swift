@@ -14,16 +14,16 @@ import Foundation
 @_silgen_name("ytcpsocket_pull") private func c_ytcpsocket_pull(_ fd: Int32, buff: UnsafePointer<Byte>, len: Int32, timeout: Int32) -> Int32
 
 
-class ConnectHandler<L: MessageListener, C: Codec>
-where L.MessageType == C.MessageType {
+class ConnectHandler<C: Codec, L: MessageListener>
+where C.MessageType == L.MessageType {
     
     let serialQueue = DispatchQueue.init(label: "TCPConnectDispatch", qos: .default, attributes: [.concurrent], autoreleaseFrequency: .inherit, target: nil)
     
     let messageQueue = [C.MessageType]()
     
-    private let cli: TCPClient<L, C>
+    private let cli: TCPClient<C, L>
     
-    init(cli: TCPClient<L, C>) {
+    init(cli: TCPClient<C, L>) {
         self.cli = cli
     }
     
@@ -46,12 +46,15 @@ where L.MessageType == C.MessageType {
     }
     
     private func handleWrite() throws {
+        debugLog("Cli \(self.cli.name) start handle write.")
         while true {
             if self.cli.status != ClientStatus.Running {
+                debugLog("Cli \(self.cli.name) stop write!")
                 break
             }
             
             guard let m = cli.sendMessageQueue.dequeue(wallTimeout: DispatchWallTime.now() + .seconds(5)) else {
+                debugLog("Cli \(self.cli.name) waiting for message")
                 continue
             }
             
@@ -59,13 +62,16 @@ where L.MessageType == C.MessageType {
             
             let p = Packet(ver: UInt8(PACKET_VERSION), len: UInt32(data.count), body: data, checksum: Adler32.checksum(data: data))
             
+            debugLog("Cli \(self.cli.name) send packet.")
             try self.cli.packetHandler?.handlePacketSend(packet: p)
         }
     }
     
     private func handleRead() throws {
+        debugLog("Cli \(self.cli.name) start handle read.")
         while true {
             if self.cli.status != ClientStatus.Running {
+                debugLog("Cli \(self.cli.name) stop read!")
                 break
             }
             
@@ -75,7 +81,9 @@ where L.MessageType == C.MessageType {
             
             var verBuff = [Byte](repeating: 0x0, count: P_VER_LEN)
             let readLen = c_ytcpsocket_pull(fd, buff: &verBuff, len: Int32(P_VER_LEN), timeout: Int32(5))
-            if readLen < P_VER_LEN || (verBuff[0] != PACKET_VERSION && verBuff[0] != PACKET_HEARTBEAT_VERSION) {
+            if readLen < P_VER_LEN {
+                continue
+            } else if verBuff[0] != PACKET_VERSION && verBuff[0] != PACKET_HEARTBEAT_VERSION {
                 throw ConnectError.readVerError
             }
             
@@ -109,6 +117,7 @@ where L.MessageType == C.MessageType {
             
             let packet = Packet(ver: verBuff[0], len: bodySize, body: bodyBuff, checksum: checksum)
             
+            debugLog("Cli \(self.cli.name) receive packet.")
             if verBuff[0] == PACKET_HEARTBEAT_VERSION {
                 try self.cli.heartbeatPacketHandler?.heartbeatPacket(packet: packet)
             } else {

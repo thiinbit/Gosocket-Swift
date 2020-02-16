@@ -17,8 +17,8 @@ typealias Byte = UInt8
 //@_silgen_name("ytcpsocket_bytes_available") private func c_ytcpsocket_bytes_available(_ fd: Int32) -> Int32
 
 
-public class TCPClient<L: MessageListener, C: Codec>
-    where L.MessageType == C.MessageType {
+public class TCPClient< C: Codec, L: MessageListener>
+where C.MessageType == L.MessageType {
     
     let serialQueue = DispatchQueue.init(label: "TCPClientDispatch", qos: .default, attributes: [.concurrent], autoreleaseFrequency: .inherit, target: nil)
     
@@ -26,38 +26,40 @@ public class TCPClient<L: MessageListener, C: Codec>
     let host: String
     let port: Int32
     var fd: Optional<Int32>
-    var env: RunEnv
     var status: ClientStatus
     var codec: C
     var messageListener: L
-    var connectHandler: Optional<ConnectHandler<L, C>>
-    var packetHandler: Optional<PacketHandler<L, C>>
-    var heartbeatPacketHandler: Optional<HeartbeatPacketHandler<L, C>>
+    var connectHandler: Optional<ConnectHandler<C, L>>
+    var packetHandler: Optional<PacketHandler<C, L>>
+    var heartbeatPacketHandler: Optional<HeartbeatPacketHandler<C, L>>
     let sendMessageQueue = BlockingQueue<C.MessageType>()
-
-
+    
+    
     init(host: String, port: Int32, codec: C, listener: L) throws {
-            if !IsValidHost(ip: host) {
-                throw ClientError.invalidServerHost
-            }
-
-            self.name = UUID().uuidString
-            self.host = host
-            self.port = port
-            self.fd = nil
-            self.env = RunEnv.DEBUG
-            self.status = ClientStatus.Preparing
-            self.codec = StringCodec() as! C
-            self.messageListener = listener
-            self.connectHandler = nil
-            self.packetHandler = nil
-            self.heartbeatPacketHandler = nil
+        if !IsValidHost(ip: host) {
+            throw ClientError.invalidServerHost
         }
-
+        
+        self.name = UUID().uuidString
+        self.host = host
+        self.port = port
+        self.fd = nil
+        self.status = ClientStatus.Preparing
+        self.codec = StringCodec() as! C
+        self.messageListener = listener
+        self.connectHandler = nil
+        self.packetHandler = nil
+        self.heartbeatPacketHandler = nil
+        
+        setCurEnv(runEnv: RunEnv.DEBUG)
+        
+        debugLog("Cli init: \(self.name)")
+    }
+    
     public func dial() throws -> Self {
-
+        
         let rs: Int32 = c_ytcpsocket_connect(self.host, port: self.port, timeout: 5)
-
+        
         if rs > 0 {
             self.fd = rs
         } else {
@@ -72,7 +74,9 @@ public class TCPClient<L: MessageListener, C: Codec>
                 throw ConnectError.unknownError
             }
         }
-
+        
+        debugLog("Cli \(self.name) connected to: \(host):\(port).")
+        
         self.connectHandler = ConnectHandler(cli: self)
         self.packetHandler = PacketHandler(cli: self)
         self.heartbeatPacketHandler = HeartbeatPacketHandler(cli: self)
@@ -82,13 +86,23 @@ public class TCPClient<L: MessageListener, C: Codec>
         }
         
         try self.connectHandler!.handleConnect()
-
+        
+        debugLog("Cli \(self.name) dialed!")
+        
         return self
     }
-
+    
     public func hangup(error: Error) {
         print(error)  // TODO: hold error
         hangup()
+    }
+    
+    public func debugMode(on: Bool) {
+        if on {
+            setCurEnv(runEnv: RunEnv.DEBUG)
+        } else {
+            setCurEnv(runEnv: RunEnv.RELEASE)
+        }
     }
     
     public func hangup() {
@@ -97,7 +111,7 @@ public class TCPClient<L: MessageListener, C: Codec>
         }
         self.connectHandler?.closeConnect()
     }
-
+    
     public func sendMessage(message: C.MessageType) {
         self.sendMessageQueue.append(newElement: message)
     }

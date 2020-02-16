@@ -10,12 +10,12 @@
 import Foundation
 
 
-class HeartbeatPacketHandler<L: MessageListener, C: Codec>
-where L.MessageType == C.MessageType{
+class HeartbeatPacketHandler<C: Codec, L: MessageListener>
+where C.MessageType == L.MessageType{
     
-    private let cli: TCPClient<L, C>
+    private let cli: TCPClient<C, L>
     
-    init(cli: TCPClient<L, C>) {
+    init(cli: TCPClient<C, L>) {
         self.cli = cli
     }
     
