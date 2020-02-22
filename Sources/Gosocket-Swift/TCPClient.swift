@@ -70,7 +70,10 @@ where C.MessageType == L.MessageType {
                 throw ConnectError.connectionClosed
             case -3:
                 throw ConnectError.connectionTimeout
+            case -4:
+                throw ConnectError.connectFail
             default:
+                debugLog("Cli \(self.name) throw unkoneError, rs: \(rs)")
                 throw ConnectError.unknownError
             }
         }
@@ -97,12 +100,14 @@ where C.MessageType == L.MessageType {
         hangup()
     }
     
-    public func debugMode(on: Bool) {
+    public func debugMode(on: Bool) -> Self {
         if on {
             setCurEnv(runEnv: RunEnv.DEBUG)
         } else {
             setCurEnv(runEnv: RunEnv.RELEASE)
         }
+        
+        return self
     }
     
     public func hangup() {
@@ -114,6 +119,7 @@ where C.MessageType == L.MessageType {
     
     public func sendMessage(message: C.MessageType) {
         self.sendMessageQueue.append(newElement: message)
+        debugLog("Cli \(self.name) sent a message: \(message)")
     }
 }
 

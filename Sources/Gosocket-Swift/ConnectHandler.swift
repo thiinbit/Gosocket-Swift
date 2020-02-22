@@ -62,7 +62,8 @@ where C.MessageType == L.MessageType {
             
             let p = Packet(ver: UInt8(PACKET_VERSION), len: UInt32(data.count), body: data, checksum: Adler32.checksum(data: data))
             
-            debugLog("Cli \(self.cli.name) send packet.")
+            debugLog("Cli \(self.cli.name) send packet. ver: \(p.ver), size: \(p.len), checksum: \(p.checksum)")
+            
             try self.cli.packetHandler?.handlePacketSend(packet: p)
         }
     }
@@ -80,7 +81,9 @@ where C.MessageType == L.MessageType {
             }
             
             var verBuff = [Byte](repeating: 0x0, count: P_VER_LEN)
+            
             let readLen = c_ytcpsocket_pull(fd, buff: &verBuff, len: Int32(P_VER_LEN), timeout: Int32(5))
+            
             if readLen < P_VER_LEN {
                 continue
             } else if verBuff[0] != PACKET_VERSION && verBuff[0] != PACKET_HEARTBEAT_VERSION {
@@ -117,7 +120,8 @@ where C.MessageType == L.MessageType {
             
             let packet = Packet(ver: verBuff[0], len: bodySize, body: bodyBuff, checksum: checksum)
             
-            debugLog("Cli \(self.cli.name) receive packet.")
+            debugLog("Cli \(self.cli.name) receive packet. ver: \(packet.ver), size: \(packet.len), checksum: \(packet.checksum)")
+            
             if verBuff[0] == PACKET_HEARTBEAT_VERSION {
                 try self.cli.heartbeatPacketHandler?.heartbeatPacket(packet: packet)
             } else {

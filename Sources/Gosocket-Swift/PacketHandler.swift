@@ -25,7 +25,7 @@ where C.MessageType == L.MessageType{
     func handlePacketReceived(packet: Packet) throws {
         let m = try self.cli.codec.decode(data: packet.body)
         
-        debugLog("Cli \(self.cli.name) message received. data size: \(packet.len).")
+        debugLog("Cli \(self.cli.name) message received. ver: \(packet.ver), len: \(packet.len), checksum: \(packet.checksum).")
         
         self.cli.messageListener.OnMessage(message: m)
     }
@@ -63,6 +63,6 @@ where C.MessageType == L.MessageType{
             throw ConnectError.sendSizeError
         }
         
-        debugLog("Cli \(self.cli.name) message sent. data size: \(packet.len).")
+        debugLog("Cli \(self.cli.name) message sent.  ver: \(packet.ver), len: \(packet.len), checksum: \(packet.checksum).")
     }
 }

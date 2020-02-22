@@ -22,6 +22,7 @@ public enum ConnectError: Error {
     case queryFailed
     case connectionClosed
     case connectionTimeout
+    case connectFail
     case unknownError
     
     case handleConnectFailed
