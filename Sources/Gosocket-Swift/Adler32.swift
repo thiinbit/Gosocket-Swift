@@ -30,12 +30,11 @@ public class Adler32 {
         var s1 = UInt32(d & 0xffff)
         var s2 = UInt32(d >> 16)
         
-        
         while p.count > 0 {
             var q: ArraySlice<UInt8> = []
             if p.count > nmax {
-                p = p[..<nmax]
-                q = p[nmax...]
+                p = ArraySlice(p[..<nmax])
+                q = ArraySlice(p[nmax...])
             }
             while p.count >= 4 {
                 s1 += UInt32(p[0])
@@ -46,7 +45,8 @@ public class Adler32 {
                 s2 += s1
                 s1 += UInt32(p[3])
                 s2 += s1
-                p = p[4...]
+                
+                p = ArraySlice(p[4...])
             }
             for x in p {
                 s1 += UInt32(x)
@@ -54,8 +54,10 @@ public class Adler32 {
             }
             s1 %= mod
             s2 %= mod
+
             p = q
         }
+
         return UInt32(s2<<16 | s1)
     }
 }

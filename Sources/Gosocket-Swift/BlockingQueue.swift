@@ -48,14 +48,12 @@ extension BlockingQueue {
         } else {
             oldTail?.next = self.tail
         }
-//        self.semaphore.signal()
+        self.semaphore.signal()
     }
     
     public func dequeue(timeout: DispatchTime) -> T? {
         let result = self.semaphore.wait(timeout: timeout)
         switch result {
-        case .timedOut:
-            return nil
         default:
             return dequeue()
         }
@@ -64,8 +62,6 @@ extension BlockingQueue {
     public func dequeue(wallTimeout: DispatchWallTime) -> T? {
         let result = self.semaphore.wait(wallTimeout: wallTimeout)
         switch result {
-        case .timedOut:
-            return nil
         default:
             return dequeue()
         }
