@@ -20,7 +20,13 @@ final class TCPClient_SwiftTests: XCTestCase {
         let host = "127.0.0.1"
         
         do {
-            let tcpCli: TCPClient = try TCPClient(host: host, port: 8888, codec: StringCodec(), listener: StringMessageListener())
+            let tcpCli: TCPClient = try TCPClient(
+                host: host, port: 8888,
+                codec: StringCodec(),
+                listener: StringMessageListener(
+                    messageHandler: { message in
+                        debugLog(message)
+                }))
                 .debugMode(on: true)
                 .dial()
             

@@ -21,11 +21,15 @@ public class StringMessageListener: MessageListener {
     
     public typealias MessageType = String
     
+    typealias MessageHandler = (MessageType)  -> Void
     
-    init() {
+    var msgHandler: MessageHandler
+    
+    init(messageHandler: @escaping MessageHandler) {
+        self.msgHandler = messageHandler
     }
     
     public func OnMessage(message: String) {
-        debugLog(message)
+        self.msgHandler(message)
     }
 }
