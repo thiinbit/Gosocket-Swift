@@ -36,9 +36,9 @@ where C.MessageType == L.MessageType {
     
     
     public init(host: String, port: Int32, codec: C, listener: L) throws {
-        if !isValidIPv4IP(ip: host) {
-            throw ClientError.invalidServerHost
-        }
+//        if !isValidIPv4IP(ip: host) {
+//            throw ClientError.invalidServerHost
+//        }
         
         self.name = UUID().uuidString
         self.host = host
