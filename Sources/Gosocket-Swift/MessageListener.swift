@@ -21,11 +21,11 @@ public class StringMessageListener: MessageListener {
     
     public typealias MessageType = String
     
-    typealias MessageHandler = (MessageType)  -> Void
+    public typealias MessageHandler = (MessageType)  -> Void
     
     var msgHandler: MessageHandler
     
-    init(messageHandler: @escaping MessageHandler) {
+    public init(messageHandler: @escaping MessageHandler) {
         self.msgHandler = messageHandler
     }
     

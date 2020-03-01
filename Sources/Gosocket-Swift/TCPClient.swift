@@ -35,7 +35,7 @@ where C.MessageType == L.MessageType {
     let sendMessageQueue = BlockingQueue<C.MessageType>()
     
     
-    init(host: String, port: Int32, codec: C, listener: L) throws {
+    public init(host: String, port: Int32, codec: C, listener: L) throws {
         if !isValidIPv4IP(ip: host) {
             throw ClientError.invalidServerHost
         }

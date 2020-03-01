@@ -22,6 +22,8 @@ public class StringCodec: Codec {
 
     public typealias MessageType = String
     
+    public init() {}
+    
     public func encode(message: String) throws -> [UInt8] {
         return Array(message.utf8)
     }
