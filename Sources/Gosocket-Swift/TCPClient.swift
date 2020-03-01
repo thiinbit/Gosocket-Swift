@@ -110,6 +110,10 @@ where C.MessageType == L.MessageType {
         return self
     }
     
+    public func isDialed() {
+        return self.status == ClientStatus.Running
+    }
+    
     public func hangup() {
         serialQueue.sync {
             self.status = ClientStatus.Stop
