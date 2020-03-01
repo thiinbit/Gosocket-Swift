@@ -16,6 +16,12 @@ final class Gosocket_SwiftTests: XCTestCase {
         debugLog("use time: \((end.uptimeNanoseconds - start.uptimeNanoseconds))")
         
         XCTAssertEqual(Gosocket_Swift().text, "Hello, World!")
+        
+        let ip1 = "10.20.30.40"
+        let ip2 = "255.255.255.256"
+        
+        XCTAssertTrue(isValidIPv4IP(ip: ip1))
+        XCTAssertFalse(isValidIPv4IP(ip: ip2))
     }
 
     static var allTests = [

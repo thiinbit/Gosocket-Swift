@@ -36,7 +36,7 @@ where C.MessageType == L.MessageType {
     
     
     init(host: String, port: Int32, codec: C, listener: L) throws {
-        if !IsValidHost(ip: host) {
+        if !isValidIPv4IP(ip: host) {
             throw ClientError.invalidServerHost
         }
         
