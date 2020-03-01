@@ -110,7 +110,7 @@ where C.MessageType == L.MessageType {
         return self
     }
     
-    public func isDialed() {
+    public func isDialed() -> Bool {
         return self.status == ClientStatus.Running
     }
     
