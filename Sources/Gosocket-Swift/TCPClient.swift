@@ -33,6 +33,7 @@ where C.MessageType == L.MessageType {
     var packetHandler: Optional<PacketHandler<C, L>>
     var heartbeatPacketHandler: Optional<HeartbeatPacketHandler<C, L>>
     let sendMessageQueue = BlockingQueue<C.MessageType>()
+    var lastActive: Date
     
     
     public init(host: String, port: Int32, codec: C, listener: L) throws {
@@ -50,6 +51,7 @@ where C.MessageType == L.MessageType {
         self.connectHandler = nil
         self.packetHandler = nil
         self.heartbeatPacketHandler = nil
+        self.lastActive = Date.init()
         
         setCurEnv(runEnv: RunEnv.DEBUG)
         
@@ -100,6 +102,10 @@ where C.MessageType == L.MessageType {
         hangup()
     }
     
+    public func updateLastActive() {
+        self.lastActive = Date.init()
+    }
+    
     public func debugMode(on: Bool) -> Self {
         if on {
             setCurEnv(runEnv: RunEnv.DEBUG)
@@ -119,6 +125,7 @@ where C.MessageType == L.MessageType {
             self.status = ClientStatus.Stop
         }
         self.connectHandler?.closeConnect()
+        self.updateLastActive()
     }
     
     public func sendMessage(message: C.MessageType) {

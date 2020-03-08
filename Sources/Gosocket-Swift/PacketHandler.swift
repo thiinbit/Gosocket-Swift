@@ -27,6 +27,7 @@ where C.MessageType == L.MessageType{
         
         debugLog("Cli \(self.cli.name) message received. ver: \(packet.ver), len: \(packet.len), checksum: \(packet.checksum).")
         
+        self.cli.updateLastActive()
         self.cli.messageListener.OnMessage(message: m)
     }
     
@@ -64,5 +65,6 @@ where C.MessageType == L.MessageType{
         }
         
         debugLog("Cli \(self.cli.name) message sent.  ver: \(packet.ver), len: \(packet.len), checksum: \(packet.checksum).")
+        self.cli.updateLastActive()
     }
 }

@@ -54,7 +54,13 @@ where C.MessageType == L.MessageType {
             }
             
             guard let m = cli.sendMessageQueue.dequeue(wallTimeout: DispatchWallTime.now() + .seconds(5)) else {
-                debugLog("Cli \(self.cli.name) waiting for message")
+                
+                if (-self.cli.lastActive.timeIntervalSinceNow) <= 5 {
+                    debugLog("Cli \(self.cli.name) healthy check.")
+                } else {
+                    try self.cli.heartbeatPacketHandler?.sendHeartbeatPacket()
+                    debugLog("Cli \(self.cli.name) healthy check. ping sent.")
+                }
                 continue
             }
             
@@ -123,7 +129,7 @@ where C.MessageType == L.MessageType {
             debugLog("Cli \(self.cli.name) receive packet. ver: \(packet.ver), size: \(packet.len), checksum: \(packet.checksum)")
             
             if verBuff[0] == PACKET_HEARTBEAT_VERSION {
-                try self.cli.heartbeatPacketHandler?.heartbeatPacket(packet: packet)
+                try self.cli.heartbeatPacketHandler?.receivedHeartbeatPacket(packet: packet)
             } else {
                 try self.cli.packetHandler?.handlePacketReceived(packet: packet)
             }
