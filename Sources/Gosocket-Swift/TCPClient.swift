@@ -19,6 +19,7 @@ typealias Byte = UInt8
 
 public class TCPClient< C: Codec, L: MessageListener>
 where C.MessageType == L.MessageType {
+    private let s = DispatchSemaphore(value: 0)
     
     let serialQueue = DispatchQueue.init(label: "TCPClientDispatch", qos: .default, attributes: [.concurrent], autoreleaseFrequency: .inherit, target: nil)
     
@@ -124,11 +125,25 @@ where C.MessageType == L.MessageType {
         serialQueue.sync {
             self.status = ClientStatus.Stop
         }
+        
+        // wait 1 sec if has message not sent in queue.
+        for _ in 1...5 {
+            if self.sendMessageQueue.count() > 0 {
+                _ = s.wait(timeout: DispatchTime.now() + .milliseconds(200))
+            }
+        }
+        
         self.connectHandler?.closeConnect()
         self.updateLastActive()
     }
     
-    public func sendMessage(message: C.MessageType) {
+    public func sendMessage(message: C.MessageType) throws {
+        try serialQueue.sync {
+            if self.status != ClientStatus.Running {
+                throw ClientError.clientNotRunning
+            }
+        }
+            
         self.sendMessageQueue.append(newElement: message)
         debugLog("Cli \(self.name) sent a message: \(message)")
     }

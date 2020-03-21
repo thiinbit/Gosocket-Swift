@@ -13,6 +13,7 @@ import Foundation
 public enum ClientError: Error {
     case invalidServerHost
     
+    case clientNotRunning
 }
 
 

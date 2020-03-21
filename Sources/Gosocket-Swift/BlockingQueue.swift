@@ -13,7 +13,6 @@ import Foundation
 // private, as users of Queue never use this directly
 private final class QueueNode<T> {
     
-    
     // not optional – every node has a value
     var value: T
     // but the last node doesn't have a next
@@ -28,6 +27,7 @@ private final class QueueNode<T> {
 // I'll leave that for now
 public final class BlockingQueue<T> {
     let semaphore = DispatchSemaphore(value: 0)
+    private (set) var elementCount : Int32 = 0
     
     // these are both optionals, to handle
     // an empty queue
@@ -48,6 +48,7 @@ extension BlockingQueue {
         } else {
             oldTail?.next = self.tail
         }
+        OSAtomicIncrement32(&self.elementCount)
         self.semaphore.signal()
     }
     
@@ -67,12 +68,17 @@ extension BlockingQueue {
         }
     }
     
+    public func count() -> Int32 {
+        return self.elementCount
+    }
+    
     private func dequeue() -> T? {
         if let head = self.head {
             self.head = head.next
             if head.next == nil {
                 tail = nil
             }
+            OSAtomicDecrement32(&self.elementCount)
             return head.value
         } else {
             return nil

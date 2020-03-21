@@ -30,11 +30,11 @@ final class TCPClient_SwiftTests: XCTestCase {
                 .debugMode(on: true)
                 .dial()
             
-            tcpCli.sendMessage(message: "Hello, Gosocket!")
+            try tcpCli.sendMessage(message: "Hello, Gosocket!")
             
             _ = s.wait(wallTimeout: DispatchWallTime.now() + .seconds(40))
             
-            tcpCli.sendMessage(message: "See you!")
+            try tcpCli.sendMessage(message: "See you!")
             
             _ = s.wait(wallTimeout: DispatchWallTime.now() + .seconds(42))
             
