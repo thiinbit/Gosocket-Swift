@@ -9,8 +9,8 @@
 
 import Foundation
 
-let PACKET_VERSION          : UInt8 = 42
-let PACKET_HEARTBEAT_VERSION: UInt8 = 255
+let PACKET_VERSION          : UInt8 = 0x2A // 101010 -> 42
+let PACKET_HEARTBEAT_VERSION: UInt8 = 0xFF // 11111111 -> 255
 
 let P_VER_LEN      = 1
 let P_LEN_LEN      = 4
